@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
     const index = await getPineconeIndex();
     console.log("Upserting the following record:", JSON.stringify(record, null, 2));
 
-    await index.upsert([record]); // Upsert expects an array of records
+    await index.upsert([record], { namespace: "" }); // or "default" if you want to explicitly set it
 
     // Step 4: Respond with success
     return NextResponse.json({
