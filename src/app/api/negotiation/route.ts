@@ -437,6 +437,337 @@
 // }
 
 
+// import { NextRequest, NextResponse } from "next/server";
+// import OpenAI from "openai";
+// import { getPineconeIndex } from "../../../utils/pinecone";
+
+// // Initialize OpenAI client
+// const openai = new OpenAI({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
+
+// interface NegotiationRequestBody {
+//   productMetadata: {
+//     productDetails: string;
+//     minimumPrice: number;
+//     price: number;
+//     category?: string;
+//     [key: string]: any; // For additional metadata fields
+//   };
+//   buyerMessage: string;
+//   rounds: number;
+// }
+
+// export async function POST(req: NextRequest) {
+//   try {
+//     const body: NegotiationRequestBody = await req.json();
+//     const { productMetadata, buyerMessage, rounds } = body;
+
+//     // Step 1: Validate input
+//     if (!productMetadata || !buyerMessage || rounds === undefined) {
+//       return NextResponse.json({ message: "Missing required fields." }, { status: 400 });
+//     }
+
+//     const { productDetails, minimumPrice, price } = productMetadata;
+
+//     // Ensure productDetails is safe
+//     const safeProductDetails = productDetails || "unknown-product";
+
+//     // Step 2: Enforce maximum negotiation rounds
+//     if (rounds >= 3) {
+//       return NextResponse.json({
+//         message: "Maximum negotiation rounds reached.",
+//         status: "terminated",
+//         rounds,
+//       });
+//     }
+
+//     // Step 3: Retrieve chat history from Pinecone
+//     const index = await getPineconeIndex();
+//     const embedding = await openai.embeddings
+//       .create({
+//         model: "text-embedding-ada-002",
+//         input: buyerMessage,
+//       })
+//       .then((res) => res.data[0].embedding);
+
+//     const sessionId = `negotiation-${safeProductDetails.replace(/\s+/g, "-").toLowerCase()}`;
+
+//     const chatHistory = await index.query(
+//       {
+//         vector: embedding,
+//         topK: 10,
+//         includeMetadata: true,
+//       },
+//       {
+//         namespace: sessionId,
+//       }
+//     );
+
+//     // Step 4: Construct dynamic system prompt
+//     const systemPrompt = `
+//       You are an AI shopkeeper negotiating the sale of a product. Your primary goal is to maximize profits for the seller while maintaining professionalism, politeness, and persuasiveness. Strictly adhere to the following rules and guidelines:
+
+//       1. **Product Details**:
+//          - Name: ${safeProductDetails}
+//          - Sticker Price: £${price}
+//          - Minimum Acceptable Price (Secret): £${minimumPrice}
+
+//       2. **Negotiation Rules**:
+//          - **Never disclose the minimum acceptable price** under any circumstances.
+//          - Always aim to keep counteroffers closer to the sticker price (£${price}) to maximize profit.
+//          - Respond to offers below the minimum price with firm but polite rejections. Use phrases such as:
+//            - "That offer is too low for this premium product."
+//            - "This product is worth more due to its quality and demand."
+//            - "We cannot accept that offer, but let me provide a better option."
+//          - Gradually reduce the price in small increments, but never below the minimum acceptable price.
+//          - Justify counteroffers by emphasizing the product's value, exclusivity, and quality.
+//          - Counteroffers should aim to bring the buyer closer to the sticker price rather than the minimum.
+
+//       3. **Response Strategy**:
+//          - Always justify pricing decisions by highlighting the product's features, value, and market demand.
+//          - If the buyer persists with offers below the minimum, reiterate the quality and value of the product and refuse to lower the price further.
+//          - Avoid using apologetic language such as "I'm sorry" for rejecting low offers. Focus on explaining the fairness of the pricing.
+//          - If the buyer proposes a reasonable price near the sticker price, consider closing the deal or offering small incentives, such as a free accessory.
+
+//       4. **Termination of Negotiation**:
+//          - Limit the negotiation to **3 rounds**.
+//          - If no agreement is reached after 3 rounds, politely inform the buyer:
+//            - "This is our final price. Thank you for your interest in this product."
+//          - Ensure you remain polite and professional even if the buyer refuses the final price.
+//     `;
+
+//     const messages = [
+//       { role: "developer", content: systemPrompt },
+//       ...(chatHistory.matches || [])
+//         .filter((match: { metadata: { role: any; content: any; }; }) => match.metadata?.role && match.metadata?.content)
+//         .map((match: { metadata: { role: any; content: any; }; }) => ({
+//           role: match.metadata.role,
+//           content: match.metadata.content,
+//         })),
+//       { role: "user", content: buyerMessage },
+//     ];
+
+//     console.log("Messages sent to OpenAI:", JSON.stringify(messages, null, 2));
+
+//     // Step 5: Call OpenAI to generate AI response
+//     const response = await openai.chat.completions.create({
+//       model: "gpt-4",
+//       messages,
+//     });
+
+//     const aiMessage = response.choices[0].message?.content;
+
+//     if (!aiMessage) {
+//       throw new Error("AI response is empty or invalid.");
+//     }
+
+//     // Step 6: Save buyer and AI messages to Pinecone
+//     const buyerRecord = {
+//       id: `buyer-${Date.now()}`,
+//       values: embedding,
+//       metadata: { role: "user", content: buyerMessage },
+//     };
+
+//     const aiRecord = {
+//       id: `ai-${Date.now()}`,
+//       values: await openai.embeddings
+//         .create({
+//           model: "text-embedding-ada-002",
+//           input: aiMessage,
+//         })
+//         .then((res) => res.data[0].embedding),
+//       metadata: { role: "assistant", content: aiMessage },
+//     };
+
+//     console.log("Upsert Payload:", JSON.stringify([buyerRecord, aiRecord], null, 2));
+
+//     await index.upsert([buyerRecord, aiRecord], { namespace: sessionId });
+
+//     // Step 7: Return AI response and updated round count
+//     return NextResponse.json({
+//       aiMessage,
+//       rounds: rounds + 1,
+//       sessionId,
+//     });
+//   } catch (error: any) {
+//     console.error("Error in Negotiation API:", error);
+//     return NextResponse.json({ error: error.message }, { status: 500 });
+//   }
+// }
+
+
+// import { NextRequest, NextResponse } from "next/server";
+// import OpenAI from "openai";
+// import { getPineconeIndex } from "../../../utils/pinecone";
+
+// // Initialize OpenAI client
+// const openai = new OpenAI({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
+
+// interface NegotiationRequestBody {
+//   productMetadata: {
+//     productDetails: string;
+//     minimumPrice: number;
+//     price: number;
+//     category?: string;
+//     [key: string]: any; // For additional metadata fields
+//   };
+//   buyerMessage: string;
+//   rounds: number;
+//   lastAiOffer?: number; // Track the last AI offer
+// }
+
+// export async function POST(req: NextRequest) {
+//   try {
+//     const body: NegotiationRequestBody = await req.json();
+//     const { productMetadata, buyerMessage, rounds, lastAiOffer } = body;
+
+//     // Step 1: Validate input
+//     if (!productMetadata || !buyerMessage || rounds === undefined) {
+//       return NextResponse.json({ message: "Missing required fields." }, { status: 400 });
+//     }
+
+//     const { productDetails, minimumPrice, price } = productMetadata;
+
+//     // Ensure productDetails is safe
+//     const safeProductDetails = productDetails || "unknown-product";
+
+//     // Step 2: Enforce maximum negotiation rounds
+//     if (rounds >= 3) {
+//       return NextResponse.json({
+//         message: "Maximum negotiation rounds reached.",
+//         status: "terminated",
+//         rounds,
+//       });
+//     }
+
+//     // Step 3: Retrieve chat history from Pinecone
+//     const index = await getPineconeIndex();
+//     const embedding = await openai.embeddings
+//       .create({
+//         model: "text-embedding-ada-002",
+//         input: buyerMessage,
+//       })
+//       .then((res) => res.data[0].embedding);
+
+//     const sessionId = `negotiation-${safeProductDetails.replace(/\s+/g, "-").toLowerCase()}`;
+
+//     const chatHistory = await index.query(
+//       {
+//         vector: embedding,
+//         topK: 10,
+//         includeMetadata: true,
+//       },
+//       {
+//         namespace: sessionId,
+//       }
+//     );
+
+//     // Step 4: Construct dynamic system prompt
+//     const systemPrompt = `
+//       You are an AI shopkeeper negotiating the sale of a product. Your primary goal is to maximize profits for the seller while maintaining professionalism, politeness, and persuasiveness. Strictly adhere to the following rules and guidelines:
+
+//       1. **Product Details**:
+//          - Name: ${safeProductDetails}
+//          - Sticker Price: £${price}
+//          - Minimum Acceptable Price (Secret): £${minimumPrice}
+
+//       2. **Negotiation Rules**:
+//          - **Never disclose the minimum acceptable price** under any circumstances.
+//          - Always aim to keep counteroffers closer to the sticker price (£${price}) to maximize profit.
+//          - Respond to offers below the minimum price with firm but polite rejections. Use phrases such as:
+//            - "That offer is too low for this premium product."
+//            - "This product is worth more due to its quality and demand."
+//            - "We cannot accept that offer, but let me provide a better option."
+//          - Gradually reduce the price in small increments, but never below the minimum acceptable price.
+//          - Justify counteroffers by emphasizing the product's value, exclusivity, and quality.
+//          - Counteroffers should aim to bring the buyer closer to the sticker price rather than the minimum.
+
+//       3. **Response Strategy**:
+//          - Always justify pricing decisions by highlighting the product's features, value, and market demand.
+//          - If the buyer persists with offers below the minimum, reiterate the quality and value of the product and refuse to lower the price further.
+//          - Avoid using apologetic language such as "I'm sorry" for rejecting low offers. Focus on explaining the fairness of the pricing.
+//          - If the buyer proposes a reasonable price near the sticker price, consider closing the deal or offering small incentives, such as a free accessory.
+
+//       4. **Termination of Negotiation**:
+//          - Limit the negotiation to **3 rounds**.
+//          - If no agreement is reached after 3 rounds, politely inform the buyer:
+//            - "This is our final price. Thank you for your interest in this product."
+//          - Ensure you remain polite and professional even if the buyer refuses the final price.
+//     `;
+
+//     const messages = [
+//       { role: "developer", content: systemPrompt },
+//       ...(chatHistory.matches || [])
+//         .filter((match: { metadata: { role: any; content: any; }; }) => match.metadata?.role && match.metadata?.content)
+//         .map((match: { metadata: { role: any; content: any; }; }) => ({
+//           role: match.metadata.role,
+//           content: match.metadata.content,
+//         })),
+//       { role: "user", content: buyerMessage },
+//     ];
+
+//     console.log("Messages sent to OpenAI:", JSON.stringify(messages, null, 2));
+
+//     // Step 5: Call OpenAI to generate AI response
+//     const response = await openai.chat.completions.create({
+//       model: "gpt-4",
+//       messages,
+//     });
+
+//     let aiMessage = response.choices[0].message?.content;
+
+//     if (!aiMessage) {
+//       throw new Error("AI response is empty or invalid.");
+//     }
+
+//     // Step 6: Ensure counteroffers are logical
+//     const currentOffer = lastAiOffer || price;
+//     const newOffer = Math.max(
+//       Math.min(currentOffer - 10, price - 10), // Decrement by 10, but stay below sticker price
+//       minimumPrice // Never go below minimum price
+//     );
+
+//     aiMessage = aiMessage.replace(/\£\d+/, `£${newOffer}`); // Update the AI's response with the new offer
+
+//     // Step 7: Save buyer and AI messages to Pinecone
+//     const buyerRecord = {
+//       id: `buyer-${Date.now()}`,
+//       values: embedding,
+//       metadata: { role: "user", content: buyerMessage },
+//     };
+
+//     const aiRecord = {
+//       id: `ai-${Date.now()}`,
+//       values: await openai.embeddings
+//         .create({
+//           model: "text-embedding-ada-002",
+//           input: aiMessage,
+//         })
+//         .then((res) => res.data[0].embedding),
+//       metadata: { role: "assistant", content: aiMessage },
+//     };
+
+//     console.log("Upsert Payload:", JSON.stringify([buyerRecord, aiRecord], null, 2));
+
+//     await index.upsert([buyerRecord, aiRecord], { namespace: sessionId });
+
+//     // Step 8: Return AI response and updated round count
+//     return NextResponse.json({
+//       aiMessage,
+//       rounds: rounds + 1,
+//       sessionId,
+//       lastAiOffer: newOffer, // Track the new offer for future rounds
+//     });
+//   } catch (error: any) {
+//     console.error("Error in Negotiation API:", error);
+//     return NextResponse.json({ error: error.message }, { status: 500 });
+//   }
+// }
+
+
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getPineconeIndex } from "../../../utils/pinecone";
@@ -456,12 +787,13 @@ interface NegotiationRequestBody {
   };
   buyerMessage: string;
   rounds: number;
+  lastAiOffer?: number; // Track the last AI offer
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body: NegotiationRequestBody = await req.json();
-    const { productMetadata, buyerMessage, rounds } = body;
+    const { productMetadata, buyerMessage, rounds, lastAiOffer } = body;
 
     // Step 1: Validate input
     if (!productMetadata || !buyerMessage || rounds === undefined) {
@@ -529,6 +861,7 @@ export async function POST(req: NextRequest) {
          - If the buyer persists with offers below the minimum, reiterate the quality and value of the product and refuse to lower the price further.
          - Avoid using apologetic language such as "I'm sorry" for rejecting low offers. Focus on explaining the fairness of the pricing.
          - If the buyer proposes a reasonable price near the sticker price, consider closing the deal or offering small incentives, such as a free accessory.
+         - If the buyer responds to a counter-offer by asking for more reduction but does not specify a price, then only lower it slightly more and say 'This is our final offer' but never offer the price as ${minimumPrice}.
 
       4. **Termination of Negotiation**:
          - Limit the negotiation to **3 rounds**.
@@ -556,13 +889,23 @@ export async function POST(req: NextRequest) {
       messages,
     });
 
-    const aiMessage = response.choices[0].message?.content;
+    let aiMessage = response.choices[0].message?.content;
 
     if (!aiMessage) {
       throw new Error("AI response is empty or invalid.");
     }
 
-    // Step 6: Save buyer and AI messages to Pinecone
+    // Step 6: Ensure counteroffers are logical
+    const currentOffer = lastAiOffer || price;
+    const decrement = Math.floor((currentOffer - minimumPrice) / (3 - rounds));
+    const newOffer = Math.max(
+      currentOffer - decrement,
+      minimumPrice // Never go below minimum price
+    );
+
+    aiMessage = aiMessage.replace(/\£\d+/, `£${newOffer}`); // Update the AI's response with the new offer
+
+    // Step 7: Save buyer and AI messages to Pinecone
     const buyerRecord = {
       id: `buyer-${Date.now()}`,
       values: embedding,
@@ -584,11 +927,12 @@ export async function POST(req: NextRequest) {
 
     await index.upsert([buyerRecord, aiRecord], { namespace: sessionId });
 
-    // Step 7: Return AI response and updated round count
+    // Step 8: Return AI response and updated round count
     return NextResponse.json({
       aiMessage,
       rounds: rounds + 1,
       sessionId,
+      lastAiOffer: newOffer, // Track the new offer for future rounds
     });
   } catch (error: any) {
     console.error("Error in Negotiation API:", error);
