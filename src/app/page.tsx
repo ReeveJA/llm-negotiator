@@ -320,7 +320,7 @@ export default function Home() {
       {/* Header */}
       <header className="py-6 px-8 bg-white/90 backdrop-blur-sm shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2x tracking-widest italic font-bold bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl italic font-bold bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">
             S<span className="text-green-500">AI</span>LER
           </h1>
           <nav className="space-x-6">
