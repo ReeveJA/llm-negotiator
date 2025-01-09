@@ -309,6 +309,8 @@
 //   );
 // }
 
+// className="min-h-screen bg-gradient-to-br from-emerald-400 via-teal-500 to-blue-600 [background-image:linear-gradient(to_bottom_right,rgba(16,185,129,0.8),rgba(20,184,166,0.7),rgba(37,99,235,0.8)),url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iLjA1Ii8+PC9zdmc+')]
+
 "use client";
 
 import Link from "next/link";
@@ -316,7 +318,10 @@ import React from "react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-400 via-teal-500 to-blue-600 [background-image:linear-gradient(to_bottom_right,rgba(16,185,129,0.8),rgba(20,184,166,0.7),rgba(37,99,235,0.8)),url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iLjA1Ii8+PC9zdmc+')] text-gray-900">
+    <div style={{
+      backgroundImage: `url('/grain.svg')`,
+      backgroundSize: 'contain',
+    }} className="text-gray-900">
       {/* Header */}
       <header className="py-6 px-8 bg-white/90 backdrop-blur-sm shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -354,7 +359,7 @@ export default function Home() {
               Don't Drown in the Sea of E-commerce
             </h2>
             <p className="mt-6 text-xl text-white/90 drop-shadow">
-              Join <strong className="text-white">SAILER</strong> and surf
+              Join <strong className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">S<span className="text-green-500">AI</span>LER</strong> and surf
               through your deals with ease.
             </p>
             <Link href="/seller">
@@ -433,7 +438,7 @@ export default function Home() {
       {/* Call-to-Action Section */}
       <section
         id="cta"
-        className="py-24 bg-gradient-to-r from-emerald-600 to-blue-600 text-white text-center"
+        className="py-24 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center"
       >
         <div className="max-w-4xl mx-auto px-8">
           <h3 className="text-4xl font-bold drop-shadow-lg">
