@@ -3,7 +3,7 @@ import { getPineconeIndex } from "../../../../utils/pinecone";
 
 export async function GET(req: NextRequest, context: { params: { productId?: string } }) {
   try {
-    const { productId } = await context.params;
+    const { productId } = context.params;
 
     if (!productId) {
       console.error("Product ID is missing.");
