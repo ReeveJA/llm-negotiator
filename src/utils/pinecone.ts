@@ -1,4 +1,4 @@
-import { Pinecone } from "@pinecone-database/pinecone";
+import { Pinecone, Index } from "@pinecone-database/pinecone";
 
 // Initialize Pinecone client (singleton pattern)
 let pinecone: Pinecone | null = null;
@@ -19,7 +19,7 @@ export async function initPinecone(): Promise<Pinecone> {
  * Connects to a specific index in Pinecone.
  * @returns Pinecone index instance.
  */
-export async function getPineconeIndex(): Promise<any> {
+export async function getPineconeIndex(): Promise<Index> {
   const pinecone = await initPinecone();
   const indexName = process.env.PINECONE_INDEX || "default-index";
   return pinecone.index(indexName); // Connect to the specified index

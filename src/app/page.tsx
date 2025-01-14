@@ -793,8 +793,7 @@ import Link from "next/link";
 import React from "react";
 import Navbar from "./components/Navbar";
 import { Anchor, ShoppingBag, Shield, Zap } from "lucide-react";
-import Image from "next/image";
-import bgOcean from '/bgOcean.jpeg'
+
 
 export default function Home() {
   return (

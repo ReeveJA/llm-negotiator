@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getPineconeIndex } from "../../../utils/pinecone";
 
 export async function GET() {

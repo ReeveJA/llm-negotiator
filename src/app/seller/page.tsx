@@ -560,7 +560,7 @@ export default function SellerForm() {
         setSuccessMessage("");
       }
     } catch (error) {
-      setErrorMessage("Something went wrong. Please try again.");
+      setErrorMessage(`Something went wrong. Please try again. ${error}`);
       setSuccessMessage("");
     }
   };
