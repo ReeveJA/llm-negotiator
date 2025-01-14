@@ -632,6 +632,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Loading from "@/app/components/Loading";
 
 export default function BuyerResults() {
   const router = useRouter();
@@ -708,9 +709,10 @@ export default function BuyerResults() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-gray-700">
-        Loading results...
-      </div>
+      // <div className="flex justify-center items-center min-h-screen text-gray-700">
+      //   Loading results...
+      // </div>
+      <Loading />
     );
   }
 
@@ -723,7 +725,7 @@ export default function BuyerResults() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-400 via-teal-500 to-blue-600 flex justify-center items-center p-6">
+    <div className="min-h-screen bg-gradient-to-br bg-blue-900/90 flex justify-center items-center p-6">
       <div className="w-full max-w-6xl">
         <h1 className="text-2xl font-bold mb-8 text-center text-white">Search Results</h1>
         {results.length > 0 ? (
@@ -745,9 +747,9 @@ export default function BuyerResults() {
                 <p className="text-gray-700">
                   Price: £{result.metadata?.price || "N/A"}
                 </p>
-                <p className="text-gray-700">
+                {/* <p className="text-gray-700">
                   Minimum Price: £{result.metadata?.minimumPrice || "N/A"}
-                </p>
+                </p> */}
 
                 {/* Buttons */}
                 <div className="mt-4 flex space-x-4">

@@ -566,7 +566,7 @@ export default function SellerForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-400 via-teal-500 to-blue-600 flex justify-center items-center p-6">
+    <div className="min-h-screen bg-gradient-to-br bg-blue-900/90 flex justify-center items-center p-6">
       <form
         onSubmit={handleSubmit}
         className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg w-full max-w-md"
